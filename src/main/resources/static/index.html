@@ -611,24 +611,263 @@
 
                 const result = await response.json();
 
-                // Display result with syntax highlighting for code
+                // Check if this is an error response from AI service
+                if (result.qualityRating === 0 && result.badPractices &&
+                    result.badPractices.includes("API Configuration Error")) {
+
+                    const responseElement = document.getElementById(responseId);
+                    responseElement.innerHTML = `
+                        <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1rem; margin: 0;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                            <strong> Problem z usługą AI</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">
+                                ${result.overallFeedback}
+                            </div>
+                            <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
+                                <i class="fas fa-info-circle"></i>
+                                Spróbuj ponownie za kilka minut lub skontaktuj się z administratorem.
+                            </div>
+                        </div>
+                    `;
+
+                    showToast('Problem z usługą AI - spróbuj ponownie za chwilę', 'error');
+                    return;
+                }
+
+                // Display result with proper formatting
                 const responseElement = document.getElementById(responseId);
-                if (result.response || result.message || result.commitMessage || result.explanation || result.evaluation) {
-                    const content = result.response || result.message || result.commitMessage || result.explanation || result.evaluation;
-                    responseElement.textContent = content;
+
+                if (responseId === 'reviewResponse') {
+                    formatCodeReviewResponse(result, responseElement);
+                } else if (responseId === 'bugResponse') {
+                    formatBugResponse(result, responseElement);
+                } else if (responseId === 'commitResponse') {
+                    formatCommitResponse(result, responseElement);
+                } else if (responseId === 'testResponse') {
+                    formatTestResponse(result, responseElement);
+                } else if (responseId === 'interviewResponse') {
+                    formatInterviewResponse(result, responseElement);
                 } else {
-                    responseElement.textContent = JSON.stringify(result, null, 2);
+                    // Fallback to original behavior
+                    if (result.response || result.message || result.commitMessage || result.explanation || result.evaluation) {
+                        const content = result.response || result.message || result.commitMessage || result.explanation || result.evaluation;
+                        responseElement.textContent = content;
+                    } else {
+                        responseElement.textContent = JSON.stringify(result, null, 2);
+                    }
                 }
 
                 showToast('Operacja zakończona pomyślnie!');
 
             } catch (error) {
                 console.error('Error:', error);
-                document.getElementById(responseId).textContent = `❌ Błąd: ${error.message}`;
+                const responseElement = document.getElementById(responseId);
+                responseElement.innerHTML = `
+                    <div class="alert alert-danger" style="background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); border-radius: 12px; padding: 1rem; margin: 0;">
+                        <i class="fas fa-exclamation-circle" style="color: #dc3545;"></i>
+                        <strong> Wystąpił błąd</strong><br>
+                        <div style="margin-top: 0.5rem; color: #e2e8f0;">
+                            ${error.message}
+                        </div>
+                        <div style="margin-top: 1rem; font-size: 0.9rem; color: #94a3b8;">
+                            <i class="fas fa-info-circle"></i>
+                            Sprawdź połączenie internetowe i spróbuj ponownie.
+                        </div>
+                    </div>
+                `;
                 showToast('Wystąpił błąd podczas przetwarzania żądania', 'error');
             } finally {
                 hideLoading(loadingId);
             }
+        }
+
+        // Formatting functions for different response types
+        function formatCodeReviewResponse(result, element) {
+            if (result.qualityRating === 0) {
+                element.innerHTML = `
+                    <div class="alert alert-warning" style="background: rgba(255, 193, 7, 0.1); border: 1px solid rgba(255, 193, 7, 0.3); border-radius: 12px; padding: 1rem; margin: 0;">
+                        <i class="fas fa-exclamation-triangle" style="color: #ffc107;"></i>
+                        <strong> Nie udało się przeanalizować kodu</strong><br>
+                        <div style="margin-top: 0.5rem; color: #e2e8f0;">
+                            ${result.overallFeedback || 'Wystąpił problem podczas analizy kodu.'}
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            element.innerHTML = `
+                <div class="code-review-results">
+                    <div class="result-header" style="margin-bottom: 1rem;">
+                        <h6 style="color: #667eea; margin: 0;">
+                            <i class="fas fa-file-code"></i> Analiza: ${result.fileName}
+                        </h6>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="color: #ffc107;">Ocena jakości: ${result.qualityRating}/10</span>
+                            <div class="rating-bar" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 0.25rem;">
+                                <div style="background: linear-gradient(90deg, #dc3545, #ffc107, #28a745); width: ${result.qualityRating * 10}%; height: 100%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${result.overallFeedback ? `
+                        <div style="background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #667eea;">💬 Ogólna ocena:</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">${result.overallFeedback}</div>
+                        </div>
+                    ` : ''}
+
+                    ${result.badPractices && result.badPractices.length > 0 ? `
+                        <div style="background: rgba(220, 53, 69, 0.1); border-left: 4px solid #dc3545; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #dc3545;">❌ Złe praktyki:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.badPractices.map(practice => `<li>${practice}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${result.refactoringSuggestions && result.refactoringSuggestions.length > 0 ? `
+                        <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #ffc107;">🔧 Sugestie refaktoringu:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.refactoringSuggestions.map(suggestion => `<li>${suggestion}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${result.cleanCodeIssues && result.cleanCodeIssues.length > 0 ? `
+                        <div style="background: rgba(13, 202, 240, 0.1); border-left: 4px solid #0dcaf0; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #0dcaf0;">🧹 Problemy z czystością kodu:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.cleanCodeIssues.map(issue => `<li>${issue}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function formatBugResponse(result, element) {
+            element.innerHTML = `
+                <div class="bug-analysis-results">
+                    <div class="result-header" style="margin-bottom: 1rem;">
+                        <h6 style="color: #dc3545; margin: 0;">
+                            <i class="fas fa-bug"></i> Analiza błędu: ${result.errorType || 'Nieznany błąd'}
+                        </h6>
+                        <div style="margin-top: 0.5rem;">
+                            <span style="color: #ffc107;">Poziom zagrożenia: ${result.severityLevel || 'N/A'}/5</span>
+                        </div>
+                    </div>
+
+                    ${result.explanation ? `
+                        <div style="background: rgba(13, 202, 240, 0.1); border-left: 4px solid #0dcaf0; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #0dcaf0;">💡 Wyjaśnienie:</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">${result.explanation}</div>
+                        </div>
+                    ` : ''}
+
+                    ${result.rootCause ? `
+                        <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #ffc107;">🎯 Główna przyczyna:</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">${result.rootCause}</div>
+                        </div>
+                    ` : ''}
+
+                    ${result.possibleSolutions && result.possibleSolutions.length > 0 ? `
+                        <div style="background: rgba(40, 167, 69, 0.1); border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #28a745;">🔧 Możliwe rozwiązania:</strong>
+                            <ol style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.possibleSolutions.map(solution => `<li>${solution}</li>`).join('')}
+                            </ol>
+                        </div>
+                    ` : ''}
+
+                    ${result.codeExample ? `
+                        <div style="background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; padding: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #667eea;">💻 Przykład poprawki:</strong>
+                            <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 0.5rem; overflow-x: auto;"><code>${result.codeExample}</code></pre>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function formatCommitResponse(result, element) {
+            element.innerHTML = `
+                <div class="commit-results">
+                    <div style="background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                        <strong style="color: #667eea;">🎯 Główna wiadomość commit:</strong><br>
+                        <code style="background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 4px; margin-top: 0.5rem; display: block;">${result.primaryMessage}</code>
+                    </div>
+
+                    ${result.alternativeMessages && result.alternativeMessages.length > 0 ? `
+                        <div style="background: rgba(40, 167, 69, 0.1); border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #28a745;">💡 Alternatywne wiadomości:</strong>
+                            <div style="margin-top: 0.5rem;">
+                                ${result.alternativeMessages.map(msg => `
+                                    <code style="background: rgba(0,0,0,0.3); padding: 0.5rem; border-radius: 4px; margin: 0.25rem 0; display: block;">${msg}</code>
+                                `).join('')}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${result.explanation ? `
+                        <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #ffc107;">📝 Wyjaśnienie zmian:</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">${result.explanation}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function formatTestResponse(result, element) {
+            element.innerHTML = `
+                <div style="background: rgba(40, 167, 69, 0.1); border-left: 4px solid #28a745; padding: 1rem; border-radius: 0 8px 8px 0;">
+                    <strong style="color: #28a745;">🧪 Wygenerowane testy:</strong>
+                    <pre style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; margin-top: 1rem; overflow-x: auto; white-space: pre-wrap;"><code>${result.testCode || result.response || 'Brak wygenerowanych testów'}</code></pre>
+                </div>
+            `;
+        }
+
+        function formatInterviewResponse(result, element) {
+            element.innerHTML = `
+                <div class="interview-results">
+                    ${result.score !== undefined ? `
+                        <div style="margin-bottom: 1rem;">
+                            <span style="color: #ffc107;">Ocena: ${result.score}/10</span>
+                            <div class="rating-bar" style="background: rgba(255,255,255,0.1); height: 6px; border-radius: 3px; margin-top: 0.25rem;">
+                                <div style="background: linear-gradient(90deg, #dc3545, #ffc107, #28a745); width: ${result.score * 10}%; height: 100%; border-radius: 3px;"></div>
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${result.strengths && result.strengths.length > 0 ? `
+                        <div style="background: rgba(40, 167, 69, 0.1); border-left: 4px solid #28a745; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #28a745;">✅ Mocne strony:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.strengths.map(strength => `<li>${strength}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${result.improvements && result.improvements.length > 0 ? `
+                        <div style="background: rgba(255, 193, 7, 0.1); border-left: 4px solid #ffc107; padding: 1rem; margin-bottom: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #ffc107;">💡 Obszary do poprawy:</strong>
+                            <ul style="margin: 0.5rem 0 0 1rem; color: #e2e8f0;">
+                                ${result.improvements.map(improvement => `<li>${improvement}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+
+                    ${result.feedback ? `
+                        <div style="background: rgba(102, 126, 234, 0.1); border-left: 4px solid #667eea; padding: 1rem; border-radius: 0 8px 8px 0;">
+                            <strong style="color: #667eea;">💬 Szczegółowa ocena:</strong><br>
+                            <div style="margin-top: 0.5rem; color: #e2e8f0;">${result.feedback}</div>
+                        </div>
+                    ` : ''}
+                </div>
+            `;
         }
 
         // Feature functions
@@ -641,7 +880,11 @@
                 return;
             }
 
-            makeApiCall('/api/review', { fileName, code }, 'reviewLoading', 'reviewResponse');
+            makeApiCall('/api/review', {
+                fileName: fileName,
+                code: code,
+                language: 'Java'
+            }, 'reviewLoading', 'reviewResponse');
         }
 
         function generateTests() {
@@ -653,18 +896,25 @@
                 return;
             }
 
-            makeApiCall('/api/test', { className, code }, 'testLoading', 'testResponse');
+            makeApiCall('/api/test', {
+                className: className,
+                code: code,
+                language: 'Java'
+            }, 'testLoading', 'testResponse');
         }
 
         function generateCommit() {
-            const diff = document.getElementById('commitDiff').value;
+            const gitDiff = document.getElementById('commitDiff').value;
 
-            if (!diff) {
-                showToast('Proszę podać git diff', 'error');
+            if (!gitDiff) {
+                showToast('Proszę wpisać git diff', 'error');
                 return;
             }
 
-            makeApiCall('/api/commit', { diff }, 'commitLoading', 'commitResponse');
+            makeApiCall('/api/commit', {
+                gitDiff: gitDiff,
+                conventionType: 'conventional'
+            }, 'commitLoading', 'commitResponse');
         }
 
         function explainBug() {
@@ -672,11 +922,15 @@
             const codeContext = document.getElementById('bugCodeContext').value;
 
             if (!stackTrace) {
-                showToast('Proszę podać stack trace', 'error');
+                showToast('Proszę wpisać stack trace', 'error');
                 return;
             }
 
-            makeApiCall('/api/bug', { stackTrace, codeContext }, 'bugLoading', 'bugResponse');
+            makeApiCall('/api/bug', {
+                stackTrace: stackTrace,
+                codeContext: codeContext,
+                language: 'Java'
+            }, 'bugLoading', 'bugResponse');
         }
 
         function evaluateAnswer() {
@@ -690,20 +944,74 @@
                 return;
             }
 
-            makeApiCall('/api/interview', { question, answer, role, level }, 'interviewLoading', 'interviewResponse');
+            makeApiCall('/api/interview', {
+                question: question,
+                answer: answer,
+                role: role,
+                level: level
+            }, 'interviewLoading', 'interviewResponse');
         }
 
-        // Initialize tooltips and other Bootstrap components
+        // Add some example data when page loads
         document.addEventListener('DOMContentLoaded', function() {
-            // Add smooth scrolling
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    document.querySelector(this.getAttribute('href')).scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                });
-            });
+            // Add placeholder examples
+            document.getElementById('reviewCode').placeholder = `public class Calculator {
+    private int result;
+
+    public int add(int a, int b) {
+        result = a + b;
+        return result;
+    }
+
+    public int getResult() {
+        return result;
+    }
+}`;
+
+            document.getElementById('testCode').placeholder = `public class Calculator {
+    public int add(int a, int b) {
+        return a + b;
+    }
+
+    public int subtract(int a, int b) {
+        return a - b;
+    }
+
+    public int multiply(int a, int b) {
+        return a * b;
+    }
+
+    public double divide(int a, int b) {
+        if (b == 0) {
+            throw new IllegalArgumentException("Division by zero");
+        }
+        return (double) a / b;
+    }
+}`;
+
+            document.getElementById('commitDiff').placeholder = `diff --git a/src/Calculator.java b/src/Calculator.java
+index 1234567..abcdefg 100644
+--- a/src/Calculator.java
++++ b/src/Calculator.java
+@@ -1,8 +1,12 @@
+ public class Calculator {
+     public int add(int a, int b) {
+         return a + b;
+     }
+
++    public int subtract(int a, int b) {
++        return a - b;
++    }
++
+     public int multiply(int a, int b) {
+         return a * b;
+     }
+ }`;
+
+            // Show welcome message
+            setTimeout(() => {
+                showToast('Witaj w AI Dev Toolkit! Wybierz narzędzie i zacznij pracę.', 'success');
+            }, 1000);
         });
     </script>
 </body>

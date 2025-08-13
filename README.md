@@ -4,6 +4,9 @@ A Spring Boot web application that integrates with OpenAI's API to assist develo
 
 Built to practice advanced Spring Boot concepts, AI integration, and full-stack development skills as a Junior Java Developer.
 
+## Demo
+link: https://devtoolkitai.onrender.com/
+
 ## What it does
 
 The application provides 5 AI-powered tools accessible via REST API and web interface:
