@@ -9,6 +9,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.HashMap;
@@ -31,6 +32,13 @@ public class AiService {
 
     public String callOpenAi(String prompt) {
         try {
+            // Sprawdzenie czy klucz API jest skonfigurowany
+            if (openAiProperties.getApiKey() == null ||
+                openAiProperties.getApiKey().equals("your-api-key-here") ||
+                openAiProperties.getApiKey().trim().isEmpty()) {
+                return createErrorResponse("OpenAI API key is not configured. Please set OPENAI_API_KEY environment variable.");
+            }
+
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", "Bearer " + openAiProperties.getApiKey());
             headers.set("Content-Type", "application/json");
@@ -53,8 +61,28 @@ public class AiService {
             JsonNode jsonResponse = objectMapper.readTree(response.getBody());
             return jsonResponse.path("choices").get(0).path("message").path("content").asText();
 
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().value() == 401) {
+                return createErrorResponse("Invalid OpenAI API key. Please check your OPENAI_API_KEY environment variable.");
+            } else if (e.getStatusCode().value() == 429) {
+                return createErrorResponse("OpenAI API rate limit exceeded. Please try again later.");
+            } else {
+                return createErrorResponse("OpenAI API error: " + e.getMessage());
+            }
         } catch (Exception e) {
-            throw new RuntimeException("Failed to call OpenAI API: " + e.getMessage(), e);
+            return createErrorResponse("Failed to connect to OpenAI API. Please check your internet connection and API configuration.");
         }
+    }
+
+    private String createErrorResponse(String errorMessage) {
+        return String.format("""
+            {
+              "qualityRating": 0,
+              "badPractices": ["API Configuration Error"],
+              "refactoringSuggestions": ["Configure OpenAI API key"],
+              "cleanCodeIssues": ["Service unavailable"],
+              "overallFeedback": "%s"
+            }
+            """, errorMessage);
     }
 }
