@@ -1,387 +1,710 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Dev Toolkit</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <title>AI Dev Toolkit - Nowoczesne Narzędzia Programisty</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        .feature-card { margin-bottom: 20px; }
-        .response-area { max-height: 400px; overflow-y: auto; }
-        .navbar-brand { font-weight: bold; }
-        .loading { display: none; }
+        :root {
+            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            --dark-bg: #0f0f23;
+            --card-bg: rgba(255, 255, 255, 0.1);
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --text-light: #e2e8f0;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background: var(--dark-bg);
+            background-image:
+                radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(255, 119, 198, 0.3) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(120, 219, 255, 0.2) 0%, transparent 50%);
+            color: var(--text-light);
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: var(--glass-bg) !important;
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 1rem 0;
+        }
+
+        .navbar-brand {
+            font-weight: 700;
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .hero-section {
+            text-align: center;
+            padding: 4rem 0;
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            margin: 2rem 0;
+            border: 1px solid var(--border-color);
+        }
+
+        .hero-title {
+            font-size: 3.5rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+            color: #94a3b8;
+            margin-bottom: 2rem;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(500px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--primary-gradient);
+        }
+
+        .card-header {
+            background: transparent !important;
+            border: none !important;
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--border-color) !important;
+        }
+
+        .card-header h5 {
+            margin: 0;
+            font-weight: 600;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .card-body {
+            padding: 1.5rem;
+        }
+
+        .form-control, .form-select {
+            background: var(--glass-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 12px !important;
+            color: var(--text-light) !important;
+            padding: 0.75rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border-color: #667eea !important;
+            box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25) !important;
+            color: var(--text-light) !important;
+        }
+
+        .form-control::placeholder {
+            color: #64748b !important;
+        }
+
+        .form-label {
+            color: #cbd5e1;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .btn {
+            border-radius: 12px;
+            padding: 0.75rem 1.5rem;
+            font-weight: 500;
+            border: none;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary {
+            background: var(--primary-gradient);
+            color: white;
+        }
+
+        .btn-success {
+            background: var(--success-gradient);
+            color: white;
+        }
+
+        .btn-warning {
+            background: var(--warning-gradient);
+            color: white;
+        }
+
+        .btn-danger {
+            background: var(--danger-gradient);
+            color: white;
+        }
+
+        .btn-info {
+            background: var(--secondary-gradient);
+            color: white;
+        }
+
+        .response-area {
+            max-height: 400px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #667eea var(--glass-bg);
+        }
+
+        .response-area::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .response-area::-webkit-scrollbar-track {
+            background: var(--glass-bg);
+            border-radius: 3px;
+        }
+
+        .response-area::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 3px;
+        }
+
+        .response-box {
+            background: var(--glass-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            border-radius: 12px !important;
+            padding: 1.5rem !important;
+            color: var(--text-light) !important;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            display: none;
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--glass-bg);
+            border-radius: 12px;
+            text-align: center;
+            color: #667eea;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+            border-width: 2px;
+        }
+
+        .feature-icon {
+            font-size: 1.5rem;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin: 3rem 0;
+        }
+
+        .stat-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--primary-gradient);
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-section {
+                padding: 2rem 1rem;
+            }
+        }
+
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1050;
+        }
+
+        .toast {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-dark bg-dark">
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg fixed-top">
         <div class="container">
-            <span class="navbar-brand">🤖 AI Dev Toolkit</span>
-            <span class="navbar-text">by steedware</span>
+            <span class="navbar-brand">
+                <i class="fas fa-robot"></i> AI Dev Toolkit
+            </span>
+            <span class="navbar-text text-light">
+                <i class="fab fa-github"></i> by steedware
+            </span>
         </div>
     </nav>
 
-    <div class="container mt-4">
-        <div class="row">
-            <div class="col-md-12">
-                <h1 class="text-center mb-4">AI-Powered Development Assistant</h1>
-                <p class="text-center text-muted">Leverage AI to enhance your development workflow</p>
-            </div>
-        </div>
-
-        <!-- Code Review Feature -->
-        <div class="row feature-card">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>🔍 Code Reviewer</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">File Name</label>
-                                    <input type="text" class="form-control" id="reviewFileName" placeholder="Example.java">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Java Code</label>
-                                    <textarea class="form-control" id="reviewCode" rows="8" placeholder="public class Example { ... }"></textarea>
-                                </div>
-                                <button class="btn btn-primary" onclick="reviewCode()">Review Code</button>
-                                <div class="loading" id="reviewLoading">
-                                    <div class="spinner-border spinner-border-sm" role="status"></div> Analyzing...
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="response-area">
-                                    <pre id="reviewResponse" class="bg-light p-3 rounded">Review results will appear here...</pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Test Generation Feature -->
-        <div class="row feature-card">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>🧪 Test Generator</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Class Name</label>
-                                    <input type="text" class="form-control" id="testClassName" placeholder="Calculator">
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Java Code</label>
-                                    <textarea class="form-control" id="testCode" rows="8" placeholder="public class Calculator { ... }"></textarea>
-                                </div>
-                                <button class="btn btn-success" onclick="generateTests()">Generate Tests</button>
-                                <div class="loading" id="testLoading">
-                                    <div class="spinner-border spinner-border-sm" role="status"></div> Generating...
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="response-area">
-                                    <pre id="testResponse" class="bg-light p-3 rounded">Generated tests will appear here...</pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Commit Message Feature -->
-        <div class="row feature-card">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>📝 Commit Message Generator</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Git Diff</label>
-                                    <textarea class="form-control" id="commitDiff" rows="8" placeholder="diff --git a/file.java b/file.java..."></textarea>
-                                </div>
-                                <button class="btn btn-warning" onclick="generateCommit()">Generate Commit Message</button>
-                                <div class="loading" id="commitLoading">
-                                    <div class="spinner-border spinner-border-sm" role="status"></div> Generating...
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="response-area">
-                                    <pre id="commitResponse" class="bg-light p-3 rounded">Commit messages will appear here...</pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bug Explainer Feature -->
-        <div class="row feature-card">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>🐛 Bug Explainer</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Stack Trace</label>
-                                    <textarea class="form-control" id="bugStackTrace" rows="6" placeholder="Exception in thread..."></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Code Context (Optional)</label>
-                                    <textarea class="form-control" id="bugCodeContext" rows="4" placeholder="Related code snippet..."></textarea>
-                                </div>
-                                <button class="btn btn-danger" onclick="explainBug()">Explain Bug</button>
-                                <div class="loading" id="bugLoading">
-                                    <div class="spinner-border spinner-border-sm" role="status"></div> Analyzing...
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="response-area">
-                                    <pre id="bugResponse" class="bg-light p-3 rounded">Bug explanation will appear here...</pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Interview Simulator Feature -->
-        <div class="row feature-card">
-            <div class="col-md-12">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>💼 Interview Simulator</h5>
-                    </div>
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label class="form-label">Interview Question</label>
-                                    <textarea class="form-control" id="interviewQuestion" rows="3" placeholder="What is polymorphism in Java?"></textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label class="form-label">Your Answer</label>
-                                    <textarea class="form-control" id="interviewAnswer" rows="5" placeholder="Your answer to the question..."></textarea>
-                                </div>
-                                <div class="row">
-                                    <div class="col-md-6">
-                                        <label class="form-label">Role</label>
-                                        <select class="form-control" id="interviewRole">
-                                            <option>Java Developer</option>
-                                            <option>Senior Developer</option>
-                                            <option>Software Engineer</option>
-                                            <option>Full Stack Developer</option>
-                                        </select>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <label class="form-label">Level</label>
-                                        <select class="form-control" id="interviewLevel">
-                                            <option>Junior</option>
-                                            <option>Mid</option>
-                                            <option>Senior</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <br>
-                                <button class="btn btn-info" onclick="evaluateAnswer()">Evaluate Answer</button>
-                                <div class="loading" id="interviewLoading">
-                                    <div class="spinner-border spinner-border-sm" role="status"></div> Evaluating...
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="response-area">
-                                    <pre id="interviewResponse" class="bg-light p-3 rounded">Interview feedback will appear here...</pre>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <footer class="text-center mt-5 mb-3">
-            <p class="text-muted">
-                AI Dev Toolkit by <strong>steedware</strong> |
-                <a href="/swagger-ui.html" target="_blank">API Documentation</a>
+    <div class="container" style="margin-top: 100px;">
+        <!-- Hero Section -->
+        <div class="hero-section">
+            <h1 class="hero-title">
+                <i class="fas fa-magic"></i> AI Dev Toolkit
+            </h1>
+            <p class="hero-subtitle">
+                Nowoczesne narzędzia AI dla programistów - zwiększ swoją produktywność
             </p>
-        </footer>
+
+            <!-- Stats -->
+            <div class="stats-section">
+                <div class="stat-card">
+                    <div class="stat-number">5</div>
+                    <div class="stat-label">Narzędzi AI</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Dostępność</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">⚡</div>
+                    <div class="stat-label">Szybka analiza</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-number">🚀</div>
+                    <div class="stat-label">Produktywność</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+            <!-- Code Review Feature -->
+            <div class="feature-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-search-code feature-icon"></i> Recenzent Kodu</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-file-code"></i> Nazwa pliku
+                        </label>
+                        <input type="text" class="form-control" id="reviewFileName" placeholder="Example.java">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fab fa-java"></i> Kod Java
+                        </label>
+                        <textarea class="form-control" id="reviewCode" rows="6" placeholder="public class Example {&#10;    // Twój kod tutaj...&#10;}"></textarea>
+                    </div>
+                    <button class="btn btn-primary w-100" onclick="reviewCode()">
+                        <i class="fas fa-analyze"></i> Przeanalizuj Kod
+                    </button>
+                    <div class="loading" id="reviewLoading">
+                        <div class="spinner-border" role="status"></div>
+                        <div class="mt-2">Analizuję kod...</div>
+                    </div>
+                    <div class="response-area mt-3">
+                        <div id="reviewResponse" class="response-box">
+                            <i class="fas fa-info-circle"></i> Wyniki analizy pojawią się tutaj...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Test Generation Feature -->
+            <div class="feature-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-flask feature-icon"></i> Generator Testów</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-class"></i> Nazwa klasy
+                        </label>
+                        <input type="text" class="form-control" id="testClassName" placeholder="Calculator">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fab fa-java"></i> Kod Java
+                        </label>
+                        <textarea class="form-control" id="testCode" rows="6" placeholder="public class Calculator {&#10;    // Twoja klasa tutaj...&#10;}"></textarea>
+                    </div>
+                    <button class="btn btn-success w-100" onclick="generateTests()">
+                        <i class="fas fa-code"></i> Generuj Testy
+                    </button>
+                    <div class="loading" id="testLoading">
+                        <div class="spinner-border" role="status"></div>
+                        <div class="mt-2">Generuję testy...</div>
+                    </div>
+                    <div class="response-area mt-3">
+                        <div id="testResponse" class="response-box">
+                            <i class="fas fa-test-tube"></i> Wygenerowane testy pojawią się tutaj...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Commit Message Feature -->
+            <div class="feature-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-git-alt feature-icon"></i> Generator Commitów</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-code-branch"></i> Git Diff
+                        </label>
+                        <textarea class="form-control" id="commitDiff" rows="6" placeholder="diff --git a/file.java b/file.java&#10;index 1234567..abcdefg 100644&#10;--- a/file.java&#10;+++ b/file.java&#10;@@ -1,3 +1,4 @@&#10; public class Example {&#10;+    // Nowa funkcjonalność&#10; }"></textarea>
+                    </div>
+                    <button class="btn btn-warning w-100" onclick="generateCommit()">
+                        <i class="fas fa-message"></i> Generuj Commit
+                    </button>
+                    <div class="loading" id="commitLoading">
+                        <div class="spinner-border" role="status"></div>
+                        <div class="mt-2">Generuję wiadomość commit...</div>
+                    </div>
+                    <div class="response-area mt-3">
+                        <div id="commitResponse" class="response-box">
+                            <i class="fas fa-comment"></i> Wiadomość commit pojawi się tutaj...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bug Explainer Feature -->
+            <div class="feature-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-bug feature-icon"></i> Wyjaśniacz Błędów</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-exclamation-triangle"></i> Stack Trace
+                        </label>
+                        <textarea class="form-control" id="bugStackTrace" rows="4" placeholder="Exception in thread &quot;main&quot; java.lang.NullPointerException&#10;    at com.example.Main.method(Main.java:15)&#10;    at com.example.Main.main(Main.java:8)"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-code"></i> Kontekst kodu (opcjonalnie)
+                        </label>
+                        <textarea class="form-control" id="bugCodeContext" rows="3" placeholder="// Powiązany fragment kodu..."></textarea>
+                    </div>
+                    <button class="btn btn-danger w-100" onclick="explainBug()">
+                        <i class="fas fa-search"></i> Wyjaśnij Błąd
+                    </button>
+                    <div class="loading" id="bugLoading">
+                        <div class="spinner-border" role="status"></div>
+                        <div class="mt-2">Analizuję błąd...</div>
+                    </div>
+                    <div class="response-area mt-3">
+                        <div id="bugResponse" class="response-box">
+                            <i class="fas fa-lightbulb"></i> Wyjaśnienie błędu pojawi się tutaj...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Interview Simulator Feature -->
+            <div class="feature-card">
+                <div class="card-header">
+                    <h5><i class="fas fa-user-tie feature-icon"></i> Symulator Rozmowy</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-question"></i> Pytanie rekrutacyjne
+                        </label>
+                        <textarea class="form-control" id="interviewQuestion" rows="2" placeholder="Co to jest polimorfizm w Javie?"></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i> Twoja odpowiedź
+                        </label>
+                        <textarea class="form-control" id="interviewAnswer" rows="4" placeholder="Twoja odpowiedź na pytanie..."></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-briefcase"></i> Stanowisko
+                            </label>
+                            <select class="form-select" id="interviewRole">
+                                <option>Java Developer</option>
+                                <option>Senior Developer</option>
+                                <option>Software Engineer</option>
+                                <option>Full Stack Developer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">
+                                <i class="fas fa-level-up-alt"></i> Poziom
+                            </label>
+                            <select class="form-select" id="interviewLevel">
+                                <option>Junior</option>
+                                <option>Mid</option>
+                                <option>Senior</option>
+                            </select>
+                        </div>
+                    </div>
+                    <button class="btn btn-info w-100" onclick="evaluateAnswer()">
+                        <i class="fas fa-check-double"></i> Oceń Odpowiedź
+                    </button>
+                    <div class="loading" id="interviewLoading">
+                        <div class="spinner-border" role="status"></div>
+                        <div class="mt-2">Oceniam odpowiedź...</div>
+                    </div>
+                    <div class="response-area mt-3">
+                        <div id="interviewResponse" class="response-box">
+                            <i class="fas fa-star"></i> Ocena odpowiedzi pojawi się tutaj...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- Toast Container -->
+    <div class="toast-container"></div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Show/hide loading indicators
-        function showLoading(id) {
-            document.getElementById(id + 'Loading').style.display = 'inline-block';
+        // Utility functions
+        function showLoading(elementId) {
+            document.getElementById(elementId).classList.add('show');
         }
 
-        function hideLoading(id) {
-            document.getElementById(id + 'Loading').style.display = 'none';
+        function hideLoading(elementId) {
+            document.getElementById(elementId).classList.remove('show');
         }
 
-        // Code Review Function
-        async function reviewCode() {
-            const code = document.getElementById('reviewCode').value;
+        function showToast(message, type = 'success') {
+            const toastContainer = document.querySelector('.toast-container');
+            const toastId = 'toast-' + Date.now();
+
+            const toastHTML = `
+                <div id="${toastId}" class="toast" role="alert">
+                    <div class="toast-header">
+                        <i class="fas fa-${type === 'success' ? 'check-circle text-success' : 'exclamation-circle text-danger'}"></i>
+                        <strong class="me-auto ms-2">${type === 'success' ? 'Sukces' : 'Błąd'}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+                    </div>
+                    <div class="toast-body">${message}</div>
+                </div>
+            `;
+
+            toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+            const toast = new bootstrap.Toast(document.getElementById(toastId));
+            toast.show();
+        }
+
+        // API call function
+        async function makeApiCall(url, data, loadingId, responseId) {
+            try {
+                showLoading(loadingId);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const result = await response.json();
+
+                // Display result with syntax highlighting for code
+                const responseElement = document.getElementById(responseId);
+                if (result.response || result.message || result.commitMessage || result.explanation || result.evaluation) {
+                    const content = result.response || result.message || result.commitMessage || result.explanation || result.evaluation;
+                    responseElement.textContent = content;
+                } else {
+                    responseElement.textContent = JSON.stringify(result, null, 2);
+                }
+
+                showToast('Operacja zakończona pomyślnie!');
+
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById(responseId).textContent = `❌ Błąd: ${error.message}`;
+                showToast('Wystąpił błąd podczas przetwarzania żądania', 'error');
+            } finally {
+                hideLoading(loadingId);
+            }
+        }
+
+        // Feature functions
+        function reviewCode() {
             const fileName = document.getElementById('reviewFileName').value;
+            const code = document.getElementById('reviewCode').value;
 
-            if (!code.trim()) {
-                alert('Please enter code to review');
+            if (!fileName || !code) {
+                showToast('Proszę wypełnić wszystkie pola', 'error');
                 return;
             }
 
-            showLoading('review');
-            try {
-                const response = await fetch('/api/review', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        code: code,
-                        fileName: fileName || 'Unknown.java',
-                        language: 'java'
-                    })
-                });
-
-                const result = await response.json();
-                document.getElementById('reviewResponse').textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('reviewResponse').textContent = 'Error: ' + error.message;
-            }
-            hideLoading('review');
+            makeApiCall('/api/review', { fileName, code }, 'reviewLoading', 'reviewResponse');
         }
 
-        // Test Generation Function
-        async function generateTests() {
-            const code = document.getElementById('testCode').value;
+        function generateTests() {
             const className = document.getElementById('testClassName').value;
+            const code = document.getElementById('testCode').value;
 
-            if (!code.trim() || !className.trim()) {
-                alert('Please enter both code and class name');
+            if (!className || !code) {
+                showToast('Proszę wypełnić wszystkie pola', 'error');
                 return;
             }
 
-            showLoading('test');
-            try {
-                const response = await fetch('/api/tests/generate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        code: code,
-                        className: className,
-                        testFramework: 'junit5'
-                    })
-                });
-
-                const result = await response.json();
-                document.getElementById('testResponse').textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('testResponse').textContent = 'Error: ' + error.message;
-            }
-            hideLoading('test');
+            makeApiCall('/api/test', { className, code }, 'testLoading', 'testResponse');
         }
 
-        // Commit Message Function
-        async function generateCommit() {
-            const gitDiff = document.getElementById('commitDiff').value;
+        function generateCommit() {
+            const diff = document.getElementById('commitDiff').value;
 
-            if (!gitDiff.trim()) {
-                alert('Please enter git diff');
+            if (!diff) {
+                showToast('Proszę podać git diff', 'error');
                 return;
             }
 
-            showLoading('commit');
-            try {
-                const response = await fetch('/api/commit/message', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        gitDiff: gitDiff,
-                        conventionType: 'conventional'
-                    })
-                });
-
-                const result = await response.json();
-                document.getElementById('commitResponse').textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('commitResponse').textContent = 'Error: ' + error.message;
-            }
-            hideLoading('commit');
+            makeApiCall('/api/commit', { diff }, 'commitLoading', 'commitResponse');
         }
 
-        // Bug Explainer Function
-        async function explainBug() {
+        function explainBug() {
             const stackTrace = document.getElementById('bugStackTrace').value;
             const codeContext = document.getElementById('bugCodeContext').value;
 
-            if (!stackTrace.trim()) {
-                alert('Please enter stack trace');
+            if (!stackTrace) {
+                showToast('Proszę podać stack trace', 'error');
                 return;
             }
 
-            showLoading('bug');
-            try {
-                const response = await fetch('/api/bug/explain', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        stackTrace: stackTrace,
-                        codeContext: codeContext,
-                        language: 'java'
-                    })
-                });
-
-                const result = await response.json();
-                document.getElementById('bugResponse').textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('bugResponse').textContent = 'Error: ' + error.message;
-            }
-            hideLoading('bug');
+            makeApiCall('/api/bug', { stackTrace, codeContext }, 'bugLoading', 'bugResponse');
         }
 
-        // Interview Evaluation Function
-        async function evaluateAnswer() {
+        function evaluateAnswer() {
             const question = document.getElementById('interviewQuestion').value;
             const answer = document.getElementById('interviewAnswer').value;
             const role = document.getElementById('interviewRole').value;
             const level = document.getElementById('interviewLevel').value;
 
-            if (!question.trim() || !answer.trim()) {
-                alert('Please enter both question and answer');
+            if (!question || !answer) {
+                showToast('Proszę wypełnić pytanie i odpowiedź', 'error');
                 return;
             }
 
-            showLoading('interview');
-            try {
-                const response = await fetch('/api/interview/answer-check', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        question: question,
-                        candidateAnswer: answer,
-                        role: role,
-                        level: level
-                    })
-                });
-
-                const result = await response.json();
-                document.getElementById('interviewResponse').textContent = JSON.stringify(result, null, 2);
-            } catch (error) {
-                document.getElementById('interviewResponse').textContent = 'Error: ' + error.message;
-            }
-            hideLoading('interview');
+            makeApiCall('/api/interview', { question, answer, role, level }, 'interviewLoading', 'interviewResponse');
         }
+
+        // Initialize tooltips and other Bootstrap components
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add smooth scrolling
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    document.querySelector(this.getAttribute('href')).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+        });
     </script>
 </body>
 </html>
