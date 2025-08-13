@@ -26,6 +26,21 @@ public class CommitService {
     public CommitMessageResponse generateCommitMessage(CommitMessageRequest request) {
         String prompt = buildCommitMessagePrompt(request);
         String aiResponse = aiService.callOpenAi(prompt);
+
+        // Check if AI response contains error information
+        if (aiResponse.contains("API Configuration Error") ||
+            aiResponse.contains("OpenAI API") ||
+            aiResponse.contains("rate limit") ||
+            aiResponse.contains("Invalid OpenAI")) {
+
+            return new CommitMessageResponse(
+                "fix: nie można wygenerować wiadomości commit",
+                Arrays.asList("feat: dodaj funkcjonalność", "docs: aktualizuj dokumentację"),
+                request.getConventionType(),
+                extractErrorMessage(aiResponse)
+            );
+        }
+
         return parseCommitMessageResponse(aiResponse, request.getConventionType());
     }
 
@@ -73,6 +88,15 @@ public class CommitService {
                 conventionType,
                 "Failed to analyze git diff: " + e.getMessage()
             );
+        }
+    }
+
+    private String extractErrorMessage(String aiResponse) {
+        try {
+            Map<String, Object> responseMap = objectMapper.readValue(aiResponse, new TypeReference<Map<String, Object>>() {});
+            return (String) responseMap.getOrDefault("overallFeedback", "Problem z usługą AI");
+        } catch (Exception e) {
+            return "Problem z usługą AI - spróbuj ponownie za chwilę";
         }
     }
 }

@@ -26,6 +26,24 @@ public class InterviewService {
     public InterviewResponse evaluateAnswer(InterviewRequest request) {
         String prompt = buildInterviewEvaluationPrompt(request);
         String aiResponse = aiService.callOpenAi(prompt);
+
+        // Check if AI response contains error information
+        if (aiResponse.contains("API Configuration Error") ||
+            aiResponse.contains("OpenAI API") ||
+            aiResponse.contains("rate limit") ||
+            aiResponse.contains("Invalid OpenAI")) {
+
+            return new InterviewResponse(
+                request.getQuestion(),
+                0,
+                Arrays.asList("Nie można ocenić odpowiedzi"),
+                Arrays.asList("Skonfiguruj klucz OpenAI API", "Sprawdź limit zapytań", "Spróbuj ponownie za chwilę"),
+                extractErrorMessage(aiResponse),
+                "Odpowiedź: " + request.getCandidateAnswer(),
+                Arrays.asList()
+            );
+        }
+
         return parseInterviewResponse(aiResponse, request.getQuestion());
     }
 
@@ -80,6 +98,15 @@ public class InterviewService {
                 "Please provide a clear, structured answer with examples.",
                 Arrays.asList("Can you elaborate on your approach?")
             );
+        }
+    }
+
+    private String extractErrorMessage(String aiResponse) {
+        try {
+            Map<String, Object> responseMap = objectMapper.readValue(aiResponse, new TypeReference<Map<String, Object>>() {});
+            return (String) responseMap.getOrDefault("overallFeedback", "Problem z usługą AI");
+        } catch (Exception e) {
+            return "Problem z usługą AI - spróbuj ponownie za chwilę";
         }
     }
 }

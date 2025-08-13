@@ -26,6 +26,21 @@ public class TestService {
     public TestGenerationResponse generateTests(TestGenerationRequest request) {
         String prompt = buildTestGenerationPrompt(request);
         String aiResponse = aiService.callOpenAi(prompt);
+
+        // Check if AI response contains error information
+        if (aiResponse.contains("API Configuration Error") ||
+            aiResponse.contains("OpenAI API") ||
+            aiResponse.contains("rate limit") ||
+            aiResponse.contains("Invalid OpenAI")) {
+
+            return new TestGenerationResponse(
+                request.getClassName(),
+                Arrays.asList("Usługa AI nie jest dostępna"),
+                "// " + extractErrorMessage(aiResponse),
+                Arrays.asList("Skonfiguruj klucz OpenAI API lub spróbuj ponownie za chwilę")
+            );
+        }
+
         return parseTestGenerationResponse(aiResponse, request.getClassName());
     }
 
@@ -74,6 +89,15 @@ public class TestService {
                 "// Test generation failed: " + e.getMessage(),
                 Arrays.asList("Please try again with valid code")
             );
+        }
+    }
+
+    private String extractErrorMessage(String aiResponse) {
+        try {
+            Map<String, Object> responseMap = objectMapper.readValue(aiResponse, new TypeReference<Map<String, Object>>() {});
+            return (String) responseMap.getOrDefault("overallFeedback", "Problem z usługą AI");
+        } catch (Exception e) {
+            return "Problem z usługą AI - spróbuj ponownie za chwilę";
         }
     }
 }

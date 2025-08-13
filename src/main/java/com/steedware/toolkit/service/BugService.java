@@ -26,6 +26,23 @@ public class BugService {
     public BugExplainerResponse explainBug(BugExplainerRequest request) {
         String prompt = buildBugExplanationPrompt(request);
         String aiResponse = aiService.callOpenAi(prompt);
+
+        // Check if AI response contains error information
+        if (aiResponse.contains("API Configuration Error") ||
+            aiResponse.contains("OpenAI API") ||
+            aiResponse.contains("rate limit") ||
+            aiResponse.contains("Invalid OpenAI")) {
+
+            return new BugExplainerResponse(
+                "Błąd konfiguracji API",
+                extractErrorMessage(aiResponse),
+                "Usługa AI nie jest dostępna",
+                Arrays.asList("Skonfiguruj klucz OpenAI API", "Sprawdź limit zapytań", "Spróbuj ponownie za chwilę"),
+                null,
+                1
+            );
+        }
+
         return parseBugExplanationResponse(aiResponse);
     }
 
@@ -79,6 +96,15 @@ public class BugService {
                 null,
                 3
             );
+        }
+    }
+
+    private String extractErrorMessage(String aiResponse) {
+        try {
+            Map<String, Object> responseMap = objectMapper.readValue(aiResponse, new TypeReference<Map<String, Object>>() {});
+            return (String) responseMap.getOrDefault("overallFeedback", "Problem z usługą AI");
+        } catch (Exception e) {
+            return "Problem z usługą AI - spróbuj ponownie za chwilę";
         }
     }
 }
